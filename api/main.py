@@ -9,17 +9,18 @@ async def root():
 
 @app.get("/tasks")
 async def get_tasks():
-    return Task.tasks
+    return {"data": Task.tasks}
 
 @app.get("/tasks/{id}")
 async def get_task_by_id(id):
-    return Task.search_by_id(id)
+    return {"data": Task.get_by_id(id)}
 
 @app.post("/tasks")
 async def post_task():
-    return Task()
+    t = Task()
+    task = Task.get_by_id(t.id)
+    return {"data": task}
 
 @app.delete("/tasks/{id}")
-async def delete_task(id):
-    Task.delete_task_by_id(id)
-    return {"message": "Task Deleted"}
+async def delete_task_by_id(id: int):
+    return {"message": Task.delete_by_id(id)}
