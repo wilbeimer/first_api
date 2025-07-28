@@ -15,8 +15,10 @@ class Task():
             
         return "Task not found"
     
-    def delete_by_id(id):
+    def delete_by_id(id: str):
         try:
+            id = int(id)
+
             Task.tasks.remove(Task.get_by_id(id))
             return "Task deleted"
         except:

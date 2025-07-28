@@ -13,6 +13,7 @@ async def get_tasks():
 
 @app.get("/tasks/{id}")
 async def get_task_by_id(id):
+    id = int(id)
     return {"data": Task.get_by_id(id)}
 
 @app.post("/tasks")
@@ -22,5 +23,5 @@ async def post_task():
     return {"data": task}
 
 @app.delete("/tasks/{id}")
-async def delete_task_by_id(id: int):
+async def delete_task_by_id(id: str):
     return {"message": Task.delete_by_id(id)}
