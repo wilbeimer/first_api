@@ -1,27 +1,56 @@
-from task import Task
+from api.models import Task
+from api.schemas import *
 from fastapi import FastAPI
+from fastapi import HTTPException
 
 app = FastAPI()
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"status": "ok"}
 
 @app.get("/tasks")
 async def get_tasks():
-    return {"data": Task.tasks}
+    return Task.get_all()
 
-@app.get("/tasks/{id}")
-async def get_task_by_id(id):
-    id = int(id)
-    return {"data": Task.get_by_id(id)}
+@app.get("/tasks/{id}", response_model=TaskOut)
+async def get_task_by_id(id: int):
+    task = Task.get_by_id(id)
+    
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return task
 
-@app.post("/tasks")
-async def post_task():
-    t = Task()
-    task = Task.get_by_id(t.id)
-    return {"data": task}
+@app.post("/tasks", response_model=TaskOut)
+async def post_task(task: TaskCreate):
+    new_task = Task(title=task.title)
+    new_task = Task.get_by_id(new_task.id)
+    return new_task
+
+@app.put("/tasks/{id}", response_model=TaskOut)
+async def put_task(id: int, task: TaskUpdate):
+    updated = Task.update(id, task.title, task.completed)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    return updated
+
+@app.patch("/tasks/{id}", response_model=TaskOut)
+async def patch_task(id: int, task: TaskOptional):
+    updated = Task.update(id, task.title, task.completed)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    return updated
 
 @app.delete("/tasks/{id}")
-async def delete_task_by_id(id: str):
-    return {"message": Task.delete_by_id(id)}
+async def delete_task_by_id(id: int):
+    task = Task.get_by_id(id)
+    
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    deleted = Task.delete_by_id(id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Task not deleted")
+    return {"status": "ok"}
