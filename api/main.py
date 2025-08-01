@@ -2,8 +2,22 @@ from api.models import Task
 from api.schemas import *
 from fastapi import FastAPI
 from fastapi import HTTPException
+import sqlite3
 
 app = FastAPI()
+
+def create_tasks_table():
+    with Task.get_db() as cursor:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS tasks(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT,
+                completed BOOLEAN)
+            """)
+        
+@app.on_event("startup")
+def startup_event():
+    create_tasks_table()
 
 @app.get("/")
 async def root():
@@ -23,9 +37,7 @@ async def get_task_by_id(id: int):
 
 @app.post("/tasks", response_model=TaskOut)
 async def post_task(task: TaskCreate):
-    new_task = Task(title=task.title)
-    new_task = Task.get_by_id(new_task.id)
-    return new_task
+    return Task.create(title= task.title)
 
 @app.put("/tasks/{id}", response_model=TaskOut)
 async def put_task(id: int, task: TaskUpdate):
