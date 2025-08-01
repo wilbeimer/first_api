@@ -37,7 +37,8 @@ async def get_task_by_id(id: int):
 
 @app.post("/tasks", response_model=TaskOut)
 async def post_task(task: TaskCreate):
-    return Task.create(title= task.title)
+    new_task = Task.create(title=task.title)
+    return new_task
 
 @app.put("/tasks/{id}", response_model=TaskOut)
 async def put_task(id: int, task: TaskUpdate):
