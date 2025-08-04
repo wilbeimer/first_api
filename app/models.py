@@ -1,6 +1,10 @@
+import os
 import sqlite3
 from contextlib import contextmanager
-import os
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class Task:
@@ -11,6 +15,10 @@ class Task:
         self.id = id
         self.title = title
         self.completed = completed
+
+    @classmethod
+    def set_db_name(cls, name: str):
+        cls.DB_NAME = name
 
     @classmethod
     def create(cls, title: str):
