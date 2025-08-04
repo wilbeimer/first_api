@@ -1,10 +1,13 @@
 import sqlite3
 from contextlib import contextmanager
-class Task():
-    DB_NAME = "tasks.db"
+import os
+
+
+class Task:
+    DB_NAME = os.getenv("TASKS_DB_NAME")
     _max_id: int = 0
 
-    def __init__(self,id:int,title:str,completed:bool):
+    def __init__(self, id: int, title: str, completed: bool):
         self.id = id
         self.title = title
         self.completed = completed
@@ -12,7 +15,9 @@ class Task():
     @classmethod
     def create(cls, title: str):
         with cls.get_db() as cursor:
-            cursor.execute("INSERT INTO tasks (title, completed) VALUES (?, ?)", (title, False))
+            cursor.execute(
+                "INSERT INTO tasks (title, completed) VALUES (?, ?)", (title, False)
+            )
             new_id = cursor.lastrowid
         return cls(new_id, title, False)
 
@@ -23,9 +28,9 @@ class Task():
         cursor = conn.cursor()
         try:
             yield cursor
-            conn.commit()  
+            conn.commit()
         except:
-            conn.rollback() 
+            conn.rollback()
             raise
         finally:
             conn.close()
@@ -38,20 +43,22 @@ class Task():
 
         if row is None:
             return None
-        task = cls(row[0],row[1],row[2])
+        task = cls(row[0], row[1], row[2])
 
         return task
-    
+
     @classmethod
     def update(cls, id: int, title: str = None, completed: bool = None):
         with cls.get_db() as cursor:
             if title is not None:
-                cursor.execute("UPDATE tasks SET title = ? WHERE id = ?", (title,id))
+                cursor.execute("UPDATE tasks SET title = ? WHERE id = ?", (title, id))
             if completed is not None:
-                cursor.execute("UPDATE tasks SET completed = ? WHERE id = ?", (completed,id))
-        
+                cursor.execute(
+                    "UPDATE tasks SET completed = ? WHERE id = ?", (completed, id)
+                )
+
         task = cls.get_by_id(id)
-       
+
         return task
 
     @classmethod
@@ -60,8 +67,8 @@ class Task():
 
         if task:
             with cls.get_db() as cursor:
-                cursor.execute("DELETE FROM tasks WHERE id = ?",(task.id,))
-            
+                cursor.execute("DELETE FROM tasks WHERE id = ?", (task.id,))
+
             return True
         else:
             return False
@@ -77,6 +84,6 @@ class Task():
 
         res = []
         for row in tasks:
-            res.append(cls(row[0],row[1],row[2]))
+            res.append(cls(row[0], row[1], row[2]))
 
         return res
