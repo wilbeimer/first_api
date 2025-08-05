@@ -1,9 +1,7 @@
 from fastapi import FastAPI, HTTPException
 
-from models import Task
-from schemas import *
-
-app = FastAPI()
+from app.models import Task
+from app.schemas import *
 
 
 def create_tasks_table():
@@ -16,11 +14,6 @@ def create_tasks_table():
                 completed BOOLEAN)
             """
         )
-
-
-@app.on_event("startup")
-def startup_event():
-    create_tasks_table()
 
 
 @app.get("/")
@@ -77,3 +70,11 @@ async def delete_task_by_id(id: int):
     if not deleted:
         raise HTTPException(status_code=404, detail="Task not deleted")
     return {"status": "ok"}
+
+
+async def lifespan(app: FastAPI):
+    # Load the ML model
+    create_tasks_table()
+
+
+app = FastAPI(lifespan=lifespan)
