@@ -17,10 +17,6 @@ class Task:
         self.completed = completed
 
     @classmethod
-    def set_db_name(cls, name: str):
-        cls.DB_NAME = name
-
-    @classmethod
     def create(cls, title: str):
         with cls.get_db() as cursor:
             cursor.execute(
@@ -31,8 +27,11 @@ class Task:
 
     @staticmethod
     @contextmanager
-    def get_db():
-        conn = sqlite3.connect(Task.DB_NAME)
+    def get_db(db: str = None):
+        if db:
+            conn = sqlite3.connect(db)
+        else:
+            conn = sqlite3.connect(Task.DB_NAME)
         cursor = conn.cursor()
         try:
             yield cursor
