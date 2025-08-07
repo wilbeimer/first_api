@@ -1,6 +1,7 @@
+from contextlib import asynccontextmanager
+
 import uvicorn
 from fastapi import FastAPI, HTTPException
-from contextlib import asynccontextmanager
 
 from app.models import Task
 from app.schemas import TaskCreate, TaskOptional, TaskOut, TaskUpdate
@@ -27,17 +28,17 @@ def create_tasks_table(db: str = None):
         )
 
 
-@app.get("/")
+@app.get("/", status_code=200)
 async def root():
     return {"status": "ok"}
 
 
-@app.get("/tasks")
+@app.get("/tasks", status_code=200)
 async def get_tasks():
     return Task.get_all()
 
 
-@app.get("/tasks/{id}", response_model=TaskOut)
+@app.get("/tasks/{id}", response_model=TaskOut, status_code=200)
 async def get_task_by_id(id: int):
     task = Task.get_by_id(id)
 
@@ -46,13 +47,13 @@ async def get_task_by_id(id: int):
     return task
 
 
-@app.post("/tasks", response_model=TaskOut)
+@app.post("/tasks", response_model=TaskOut, status_code=201)
 async def post_task(task: TaskCreate):
     new_task = Task.create(title=task.title)
-    return {"status": "ok", "data": new_task}
+    return new_task
 
 
-@app.put("/tasks/{id}", response_model=TaskOut)
+@app.put("/tasks/{id}", response_model=TaskOut, status_code=200)
 async def put_task(id: int, task: TaskUpdate):
     updated = Task.update(id, task.title, task.completed)
     if not updated:
@@ -61,7 +62,7 @@ async def put_task(id: int, task: TaskUpdate):
     return updated
 
 
-@app.patch("/tasks/{id}", response_model=TaskOut)
+@app.patch("/tasks/{id}", response_model=TaskOut, status_code=200)
 async def patch_task(id: int, task: TaskOptional):
     updated = Task.update(id, task.title, task.completed)
     if not updated:
@@ -70,7 +71,7 @@ async def patch_task(id: int, task: TaskOptional):
     return updated
 
 
-@app.delete("/tasks/{id}")
+@app.delete("/tasks/{id}", status_code=204)
 async def delete_task_by_id(id: int):
     task = Task.get_by_id(id)
 
@@ -80,7 +81,7 @@ async def delete_task_by_id(id: int):
     deleted = Task.delete_by_id(id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Task not deleted")
-    return {"status": "ok"}
+    return 
 
 
 if __name__ == "__main__":
