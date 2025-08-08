@@ -23,8 +23,17 @@ def test_post_task():
         "/tasks/",
         json={"title": "test task"},
     )
-    assert response.status_code == 200
+    assert response.status_code == 201
     data = response.json()
     assert "id" in data
     assert data["title"] == "test task"
     assert data["completed"] is False
+
+
+def test_get_all_tasks():
+    response = client.get("/tasks")
+    assert response.status_code == 200
+    tasks = response.json()
+    assert all(
+        task["title"] == "test task" and task["completed"] is False for task in tasks
+    ), f"Expected to find 'test task' in {tasks}"
