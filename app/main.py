@@ -33,7 +33,7 @@ async def root():
     return {"status": "ok"}
 
 
-@app.get("/tasks", status_code=200)
+@app.get("/tasks", response_model=list[TaskOut], status_code=200)
 async def get_tasks():
     return Task.get_all()
 
@@ -81,7 +81,7 @@ async def delete_task_by_id(id: int):
     deleted = Task.delete_by_id(id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Task not deleted")
-    return 
+    return
 
 
 if __name__ == "__main__":
