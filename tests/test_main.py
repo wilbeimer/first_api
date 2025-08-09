@@ -53,12 +53,25 @@ def test_get_task_by_id():
     created = create_task("Test get")
     assert created.status_code == 201
     created_id = created.json()["id"]
+    created_title = created.json()["title"]
 
     response = client.get(f"/tasks/{created_id}")
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == created_id
-    assert data["title"] == "Test get"
+    assert data["title"] == created_title
 
     response = client.get("/tasks/9999999")
+    assert response.status_code == 404
+
+
+def test_delete_task():
+    created = create_task()
+    assert created.status_code == 201
+    created_id = created.json()["id"]
+
+    response = client.delete(f"/tasks/{created_id}")
+    assert response.status_code == 204
+
+    response = client.delete("/tasks/99999")
     assert response.status_code == 404
