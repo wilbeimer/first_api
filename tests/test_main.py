@@ -12,6 +12,11 @@ def use_in_memory_db():
     yield
 
 
+def create_task(title: str = "Default task"):
+    response = client.post("/tasks/", json={"title": title})
+    return response
+
+
 def test_root():
     response = client.get("/")
     assert response.status_code == 200
@@ -19,27 +24,41 @@ def test_root():
 
 
 def test_post_task():
-    response = client.post(
-        "/tasks/",
-        json={"title": "test task"},
-    )
+    response = create_task()
     assert response.status_code == 201
     data = response.json()
     assert "id" in data
-    assert data["title"] == "test task"
+    assert data["title"] == "Default task"
     assert data["completed"] is False
+
+    response = client.post(
+        "/tasks/",
+    )
+    assert response.status_code == 422
 
 
 def test_get_all_tasks():
-    response = client.post(
-        "/tasks/",
-        json={"title": "test task"},
-    )
+    response = create_task()
     assert response.status_code == 201
 
     response = client.get("/tasks")
     assert response.status_code == 200
     tasks = response.json()
     assert any(
-        task["title"] == "test task" and task["completed"] == False for task in tasks
-    ), f"Expected to find 'test task' in {tasks}"
+        task["title"] == "Default task" and task["completed"] == False for task in tasks
+    ), f"Expected to find 'Default task' in {tasks}"
+
+
+def test_get_task_by_id():
+    created = create_task("Test get")
+    assert created.status_code == 201
+    created_id = created.json()["id"]
+
+    response = client.get(f"/tasks/{created_id}")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == created_id
+    assert data["title"] == "Test get"
+
+    response = client.get("/tasks/9999999")
+    assert response.status_code == 404
