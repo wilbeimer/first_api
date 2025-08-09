@@ -2,12 +2,15 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app, create_tasks_table
+from app.models import Task
 
 
 @pytest.fixture()
 def client_with_db():
-    create_tasks_table(db=":memory:")
-    return TestClient(app)
+    Task.set_db_name(":memory:")
+    client = TestClient(app)
+    create_tasks_table()
+    return client
 
 
 def create_task(client, title: str = "Default task"):

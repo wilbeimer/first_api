@@ -16,8 +16,8 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
-def create_tasks_table(db: str = None):
-    with Task.get_db(db) as cursor:
+def create_tasks_table():
+    with Task.get_db() as cursor:
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS tasks(

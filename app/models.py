@@ -25,13 +25,14 @@ class Task:
             new_id = cursor.lastrowid
         return cls(new_id, title, False)
 
+    @classmethod
+    def set_db_name(cls, name):
+        cls.DB_NAME = name
+
     @staticmethod
     @contextmanager
-    def get_db(db: str = None):
-        if db:
-            conn = sqlite3.connect(db)
-        else:
-            conn = sqlite3.connect(Task.DB_NAME)
+    def get_db():
+        conn = sqlite3.connect(Task.DB_NAME)
         cursor = conn.cursor()
         try:
             yield cursor
