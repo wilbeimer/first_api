@@ -1,4 +1,5 @@
 import pytest
+import sqlite3
 from fastapi.testclient import TestClient
 
 from app.main import app, create_tasks_table
@@ -7,10 +8,12 @@ from app.models import Task
 
 @pytest.fixture()
 def client_with_db():
-    Task.set_db_name(":memory:")
-    client = TestClient(app)
+    Task._connection = sqlite3.connect(":memory:", check_same_thread=False)
     create_tasks_table()
-    return client
+    client = TestClient(app)
+    yield client
+    Task._connection.close()
+    Task._connection = None
 
 
 def create_task(client, title: str = "Default task"):

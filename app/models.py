@@ -10,6 +10,7 @@ load_dotenv()
 class Task:
     DB_NAME = os.getenv("TASKS_DB_NAME")
     _max_id: int = 0
+    _connection = None
 
     def __init__(self, id: int, title: str, completed: bool):
         self.id = id
@@ -29,19 +30,27 @@ class Task:
     def set_db_name(cls, name):
         cls.DB_NAME = name
 
-    @staticmethod
+    @classmethod
     @contextmanager
-    def get_db():
-        conn = sqlite3.connect(Task.DB_NAME)
-        cursor = conn.cursor()
-        try:
-            yield cursor
-            conn.commit()
-        except:
-            conn.rollback()
-            raise
-        finally:
-            conn.close()
+    def get_db(cls):
+        if cls._connection:
+            cursor = cls._connection.cursor()
+            try:
+                yield cursor
+                cls._connection.commit()
+            except:
+                cls._connection.rollback()
+        else:
+            conn = sqlite3.connect(Task.DB_NAME)
+            cursor = conn.cursor()
+            try:
+                yield cursor
+                conn.commit()
+            except:
+                conn.rollback()
+                raise
+            finally:
+                conn.close()
 
     @classmethod
     def get_by_id(cls, id: int):
