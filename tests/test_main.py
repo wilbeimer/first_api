@@ -1,5 +1,6 @@
-import pytest
 import sqlite3
+
+import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app, create_tasks_table
@@ -79,3 +80,24 @@ def test_delete_task(client_with_db):
 
     response = client_with_db.delete("/tasks/99999")
     assert response.status_code == 404
+
+
+def test_put_task(client_with_db):
+    created = create_task(client_with_db)
+    assert created.status_code == 201
+    created_id = created.json()["id"]
+
+    response = client_with_db.put(
+        f"/tasks/{created_id}", json={"title": "Updated Title", "completed": True}
+    )
+    assert response.status_code == 200
+
+    response = client_with_db.put(
+        f"/tasks/{2}", json={"title": "Updated Title", "completed": True}
+    )
+    assert response.status_code == 404
+
+    response = client_with_db.put(
+        f"/tasks/{created_id}", json={"title": "Updated Title"}
+    )
+    assert response.status_code == 422
