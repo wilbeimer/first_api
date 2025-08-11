@@ -33,9 +33,11 @@ def test_post_task(client_with_db):
     assert response.status_code == 201
     data = response.json()
     assert "id" in data
+    assert isinstance(data["id"], int)
     assert data["title"] == "Default task"
     assert data["completed"] is False
 
+    # Post requires data
     response = client_with_db.post(
         "/tasks/",
     )
@@ -49,7 +51,8 @@ def test_get_all_tasks(client_with_db):
     response = client_with_db.get("/tasks")
     assert response.status_code == 200
     tasks = response.json()
-    assert any(
+    assert isinstance(tasks, list)
+    assert all(
         task["title"] == "Default task" and task["completed"] == False for task in tasks
     ), f"Expected to find 'Default task' in {tasks}"
 
@@ -63,6 +66,7 @@ def test_get_task_by_id(client_with_db):
     response = client_with_db.get(f"/tasks/{created_id}")
     assert response.status_code == 200
     data = response.json()
+    assert isinstance(data["completed"], bool)
     assert data["id"] == created_id
     assert data["title"] == created_title
 
@@ -77,6 +81,10 @@ def test_delete_task(client_with_db):
 
     response = client_with_db.delete(f"/tasks/{created_id}")
     assert response.status_code == 204
+
+    # Check that task was deleted
+    response = client_with_db.get(f"/tasks/{created_id}")
+    assert response.status_code == 404
 
     response = client_with_db.delete("/tasks/99999")
     assert response.status_code == 404
@@ -100,4 +108,13 @@ def test_put_task(client_with_db):
     response = client_with_db.put(
         f"/tasks/{created_id}", json={"title": "Updated Title"}
     )
+    assert response.status_code == 422
+
+
+    response = client_with_db.put(
+        f"/tasks/{created_id}", json={"title": True, "completed": "yes"}
+    )
+    assert response.status_code == 422
+
+    response = client_with_db.put(f"/tasks/{created_id}", json={})
     assert response.status_code == 422
