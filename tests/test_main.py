@@ -98,7 +98,11 @@ def test_put_task(client_with_db):
     response = client_with_db.put(
         f"/tasks/{created_id}", json={"title": "Updated Title", "completed": True}
     )
+    data = response.json()
     assert response.status_code == 200
+    assert data["id"] == created_id
+    assert data["title"] == "Updated Title"
+    assert data["completed"] is True
 
     response = client_with_db.put(
         f"/tasks/{2}", json={"title": "Updated Title", "completed": True}
@@ -110,7 +114,6 @@ def test_put_task(client_with_db):
     )
     assert response.status_code == 422
 
-
     response = client_with_db.put(
         f"/tasks/{created_id}", json={"title": True, "completed": "yes"}
     )
@@ -118,3 +121,37 @@ def test_put_task(client_with_db):
 
     response = client_with_db.put(f"/tasks/{created_id}", json={})
     assert response.status_code == 422
+
+
+def test_patch_task(client_with_db):
+    created = create_task(client_with_db)
+    assert created.status_code == 201
+    created_id = created.json()["id"]
+
+    response = client_with_db.patch(
+        f"/tasks/{created_id}", json={"title": "Updated Title"}
+    )
+    data = response.json()
+    assert response.status_code == 200
+    assert data["id"] == created_id
+    assert data["title"] == "Updated Title"
+    assert data["completed"] is False
+
+    response = client_with_db.patch(
+        f"/tasks/{created_id}", json={"title": "Updated Title 2", "completed": True}
+    )
+    data = response.json()
+    assert response.status_code == 200
+    assert data["id"] == created_id
+    assert data["title"] == "Updated Title 2"
+    assert data["completed"] is True
+
+    response = client_with_db.patch(
+        f"/tasks/{created_id}", json={}
+    )
+    data = response.json()
+    assert response.status_code == 200
+    assert data["id"] == created_id
+    assert data["title"] == "Updated Title 2"
+    assert data["completed"] is True
+
