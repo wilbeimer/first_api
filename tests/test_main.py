@@ -82,6 +82,7 @@ def test_get_task_by_id(client_with_db):
     assert data["id"] == created_id
     assert data["title"] == created_title
 
+    # Check response for get nonexistant id
     response = client_with_db.get("/tasks/9999999")
     assert response.status_code == 404
 
@@ -94,10 +95,11 @@ def test_delete_task(client_with_db):
     response = client_with_db.delete(f"/tasks/{created_id}")
     assert response.status_code == 204
 
-    # Check that task was deleted
+    # Check that task was properly deleted
     response = client_with_db.get(f"/tasks/{created_id}")
     assert response.status_code == 404
 
+    # Check response for deleting nonexistant id
     response = client_with_db.delete("/tasks/99999")
     assert response.status_code == 404
 
@@ -116,26 +118,38 @@ def test_put_task(client_with_db):
     assert data["title"] == "Updated Title"
     assert data["completed"] is True
 
+    # Check response for invalid id
     response = client_with_db.put(
         f"/tasks/{2}", json={"title": "Updated Title", "completed": True}
     )
     assert response.status_code == 404
 
+    # Put doesn't accept id
     response = client_with_db.put(
-        f"/tasks/{2}", json={"id": 3, "title": "Updated Title"}
+        f"/tasks/{created_id}",
+        json={"id": 3, "title": "Updated Title", "completed": True},
     )
     assert response.status_code == 422
 
+    # Put requires title and completed
     response = client_with_db.put(
         f"/tasks/{created_id}", json={"title": "Updated Title"}
     )
     assert response.status_code == 422
 
+    # Title must be string
     response = client_with_db.put(
-        f"/tasks/{created_id}", json={"title": True, "completed": "yes"}
+        f"/tasks/{created_id}", json={"title": True, "completed": True}
     )
     assert response.status_code == 422
 
+    # Completed must be boolean
+    response = client_with_db.put(
+        f"/tasks/{created_id}", json={"title": "Updated Title", "completed": "yes"}
+    )
+    assert response.status_code == 422
+
+    # Put requires json argument
     response = client_with_db.put(f"/tasks/{created_id}", json={})
     assert response.status_code == 422
 
@@ -154,6 +168,7 @@ def test_patch_task(client_with_db):
     assert data["title"] == "Updated Title"
     assert data["completed"] is False
 
+    # Check that patch updates title and completed
     response = client_with_db.patch(
         f"/tasks/{created_id}", json={"title": "Updated Title 2", "completed": True}
     )
@@ -163,9 +178,26 @@ def test_patch_task(client_with_db):
     assert data["title"] == "Updated Title 2"
     assert data["completed"] is True
 
+    # Check that empty data is handled properly
     response = client_with_db.patch(f"/tasks/{created_id}", json={})
     data = response.json()
     assert response.status_code == 200
     assert data["id"] == created_id
     assert data["title"] == "Updated Title 2"
     assert data["completed"] is True
+
+    # Title must be string
+    response = client_with_db.put(
+        f"/tasks/{created_id}", json={"title": True, "completed": True}
+    )
+    assert response.status_code == 422
+
+    # Completed must be boolean
+    response = client_with_db.put(
+        f"/tasks/{created_id}", json={"title": "Updated Title", "completed": "yes"}
+    )
+    assert response.status_code == 422
+
+    # Put requires json argument
+    response = client_with_db.put(f"/tasks/{created_id}", json={})
+    assert response.status_code == 422
