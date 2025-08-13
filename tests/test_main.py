@@ -37,10 +37,22 @@ def test_post_task(client_with_db):
     assert data["title"] == "Default task"
     assert data["completed"] is False
 
+    # Title must be valid
+    response = client_with_db.post("/tasks/", json={"title": ""})
+    assert response.status_code == 422
+
+    # Title must be < 100 char
+    response = client_with_db.post("/tasks/", json={"title": "A" * 150})
+    assert response.status_code == 422
+
     # Post requires data
     response = client_with_db.post(
         "/tasks/",
     )
+    assert response.status_code == 422
+
+    # Post requires data
+    response = client_with_db.post("/tasks/", json={})
     assert response.status_code == 422
 
 
@@ -110,6 +122,11 @@ def test_put_task(client_with_db):
     assert response.status_code == 404
 
     response = client_with_db.put(
+        f"/tasks/{2}", json={"id": 3, "title": "Updated Title"}
+    )
+    assert response.status_code == 422
+
+    response = client_with_db.put(
         f"/tasks/{created_id}", json={"title": "Updated Title"}
     )
     assert response.status_code == 422
@@ -146,12 +163,9 @@ def test_patch_task(client_with_db):
     assert data["title"] == "Updated Title 2"
     assert data["completed"] is True
 
-    response = client_with_db.patch(
-        f"/tasks/{created_id}", json={}
-    )
+    response = client_with_db.patch(f"/tasks/{created_id}", json={})
     data = response.json()
     assert response.status_code == 200
     assert data["id"] == created_id
     assert data["title"] == "Updated Title 2"
     assert data["completed"] is True
-

@@ -1,23 +1,23 @@
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, constr, PositiveInt
 
 
 class TaskCreate(BaseModel):
-    title: str
+    title: constr(min_length=1, max_length=100)
 
 
 class TaskOut(BaseModel):
-    id: int
-    title: str
+    id: PositiveInt
+    title: constr(min_length=1, max_length=100)
     completed: bool
 
 
 class TaskUpdate(BaseModel):
-    title: str
+    title: constr(min_length=1, max_length=100)
     completed: bool
 
 
 class TaskOptional(BaseModel):
-    title: Optional[str] = None
+    title: Optional[constr(min_length=1, max_length=100)] = None
     completed: Optional[bool] = None
