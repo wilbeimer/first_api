@@ -1,23 +1,28 @@
 from typing import Optional
 
-from pydantic import BaseModel, constr, PositiveInt
+from pydantic import BaseModel, PositiveInt, StrictBool, constr
 
 
-class TaskCreate(BaseModel):
+# Base model with global config
+class StrictBaseModel(BaseModel):
+    model_config = {"extra": "forbid"}  # No extra fields allowed anywhere
+
+
+class TaskCreate(StrictBaseModel):
     title: constr(min_length=1, max_length=100)
 
 
-class TaskOut(BaseModel):
+class TaskOut(StrictBaseModel):
     id: PositiveInt
     title: constr(min_length=1, max_length=100)
-    completed: bool
+    completed: StrictBool
 
 
-class TaskUpdate(BaseModel):
+class TaskUpdate(StrictBaseModel):
     title: constr(min_length=1, max_length=100)
-    completed: bool
+    completed: StrictBool
 
 
-class TaskOptional(BaseModel):
+class TaskOptional(StrictBaseModel):
     title: Optional[constr(min_length=1, max_length=100)] = None
-    completed: Optional[bool] = None
+    completed: Optional[StrictBool] = None

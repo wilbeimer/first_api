@@ -15,7 +15,7 @@ class Task:
     def __init__(self, id: int, title: str, completed: bool):
         self.id = id
         self.title = title
-        self.completed = completed
+        self.completed = bool(completed)
 
     @classmethod
     def create(cls, title: str):
